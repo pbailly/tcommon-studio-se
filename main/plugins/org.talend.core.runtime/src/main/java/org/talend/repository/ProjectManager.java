@@ -131,7 +131,7 @@ public final class ProjectManager {
             if (parentBranch != null) {
                 for (ProjectReference pr : (List<ProjectReference>) p.getReferencedProjects()) {
                     if (pr.getBranch() == null || parentBranch.equals(pr.getBranch())) {
-                        Project project = new Project(pr.getReferencedProject());
+                        Project project = new Project(pr.getReferencedProject(), false);
                         allReferencedprojects.add(project);
                         resolveSubRefProject(pr.getReferencedProject(), allReferencedprojects); // only to resolve all
                     }
@@ -208,7 +208,7 @@ public final class ProjectManager {
                         .getReferencedProjects(this.getCurrentProject());
                 if (rProjects != null) {
                     for (org.talend.core.model.properties.Project p : rProjects) {
-                        Project project = new Project(p);
+                        Project project = new Project(p, false);
                         allReferencedprojects.add(project);
                         resolveSubRefProject(p, allReferencedprojects);
                     }
@@ -234,7 +234,7 @@ public final class ProjectManager {
             List<Project> refProjects = new ArrayList<Project>();
             for (ProjectReference refProject : (List<ProjectReference>) project.getEmfProject().getReferencedProjects()) {
                 if (refProject.getBranch() == null || parentBranch.equals(refProject.getBranch())) {
-                    refProjects.add(new Project(refProject.getReferencedProject()));
+                    refProjects.add(new Project(refProject.getReferencedProject(), false));
                 }
             }
             return refProjects;

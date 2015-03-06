@@ -125,10 +125,10 @@ public class HiveConnectionManager extends DataBaseConnectionManager {
             String hivePrincipal = (String) metadataConn.getParameter(ConnParameterKeys.HIVE_AUTHENTICATION_HIVEPRINCIPLA);
             if (useKerberos) {
                 System.setProperty(HiveConfKeysForTalend.HIVE_CONF_KEY_HIVE_METASTORE_KERBEROS_PRINCIPAL.getKey(), hivePrincipal);
-                String principal = (String) metadataConn.getParameter(ConnParameterKeys.HIVE_AUTHENTICATION_PRINCIPLA);
-                String keytabPath = (String) metadataConn.getParameter(ConnParameterKeys.HIVE_AUTHENTICATION_KEYTAB);
+                String principal = (String) metadataConn.getParameter(ConnParameterKeys.CONN_PARA_KEY_KEYTAB_PRINCIPAL);
+                String keytabPath = (String) metadataConn.getParameter(ConnParameterKeys.CONN_PARA_KEY_KEYTAB);
                 boolean useKeytab = Boolean.valueOf((String) metadataConn
-                        .getParameter(ConnParameterKeys.HIVE_AUTHENTICATION_USEKEYTAB));
+                        .getParameter(ConnParameterKeys.CONN_PARA_KEY_USEKEYTAB));
                 if (useKeytab) {
                     ClassLoader hiveClassLoader = HiveClassLoaderFactory.getInstance().getClassLoader(metadataConn);
                     try {

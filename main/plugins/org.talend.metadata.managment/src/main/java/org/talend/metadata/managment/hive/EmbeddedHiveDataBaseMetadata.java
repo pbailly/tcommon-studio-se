@@ -83,16 +83,16 @@ public class EmbeddedHiveDataBaseMetadata extends AbstractFakeDatabaseMetaData {
 
                 boolean useKerberos = Boolean
                         .valueOf((String) metadataConn.getParameter(ConnParameterKeys.CONN_PARA_KEY_USE_KRB));
-                boolean useKeytab = Boolean.valueOf((String) metadataConn
-                        .getParameter(ConnParameterKeys.HIVE_AUTHENTICATION_USEKEYTAB));
+                boolean useKeytab = Boolean
+                        .valueOf((String) metadataConn.getParameter(ConnParameterKeys.CONN_PARA_KEY_USEKEYTAB));
                 if (useKerberos) {
                     Object conf = Class.forName("org.apache.hadoop.conf.Configuration", true, classLoader).newInstance(); //$NON-NLS-1$
                     ReflectionUtils.invokeMethod(conf, "set", new Object[] { "hadoop.security.authentication", "kerberos" }); //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
                     ReflectionUtils.invokeStaticMethod("org.apache.hadoop.security.UserGroupInformation", classLoader, //$NON-NLS-1$
                             "setConfiguration", new Object[] { conf }); //$NON-NLS-1$
                     if (useKeytab) {
-                        String principal = (String) metadataConn.getParameter(ConnParameterKeys.HIVE_AUTHENTICATION_PRINCIPLA);
-                        String keytabPath = (String) metadataConn.getParameter(ConnParameterKeys.HIVE_AUTHENTICATION_KEYTAB);
+                        String principal = (String) metadataConn.getParameter(ConnParameterKeys.CONN_PARA_KEY_KEYTAB_PRINCIPAL);
+                        String keytabPath = (String) metadataConn.getParameter(ConnParameterKeys.CONN_PARA_KEY_KEYTAB);
                         ReflectionUtils.invokeStaticMethod("org.apache.hadoop.security.UserGroupInformation", classLoader, //$NON-NLS-1$
                                 "loginUserFromKeytab", new String[] { principal, keytabPath }); //$NON-NLS-1$
                     }

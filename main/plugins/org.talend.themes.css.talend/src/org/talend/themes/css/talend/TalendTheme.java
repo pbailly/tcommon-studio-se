@@ -1,4 +1,4 @@
-package org.talend.themes.talend_theme;
+package org.talend.themes.css.talend;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;

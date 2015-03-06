@@ -197,7 +197,7 @@ public class BigDataNode extends AbstractNode implements IBigDataNode {
                                             // SCHEMA_COLUMN is the name of the column in a "based on schema" context.
                                             colName = (String) nodeColumnListMap.get("SCHEMA_COLUMN"); //$NON-NLS-1$
                                         } else {
-                                            break;
+                                            continue;
                                         }
                                     } else {
                                         // else, the value itself contains the name of the column.

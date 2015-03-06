@@ -26,6 +26,8 @@ public enum EHadoopConfigurationJars {
 
     HIVE(new String[] { "hadoop-conf.jar" }, new String[] { "hadoop-conf-kerberos.jar" }), //$NON-NLS-1$ //$NON-NLS-2$
 
+    HBASE(new String[] { "hadoop-conf.jar" }, new String[] { "hadoop-conf-kerberos.jar" }), //$NON-NLS-1$ //$NON-NLS-2$
+
     ;
 
     private String[] disableSecurityJars;

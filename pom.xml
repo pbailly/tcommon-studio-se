@@ -147,7 +147,7 @@
 		<module>main/plugins/org.talend.updates.runtime</module>
 		<module>main/plugins/org.talend.utils</module>
         <module>main/plugins/org.talend.themes.core</module>
-        <module>main/plugins/org.talend.themes.talend_theme</module>
+        <module>main/plugins/org.talend.themes.css.talend</module>
 		<module>test/plugins/org.talend.commons.runtime.test</module>
 		<module>test/plugins/org.talend.commons.ui.test</module>
 		<module>test/plugins/org.talend.core.repository.test</module>

@@ -12,10 +12,7 @@
 // ============================================================================
 package org.talend.core.model.metadata;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +24,7 @@ import org.apache.avro.SchemaBuilder.BaseFieldTypeBuilder;
 import org.apache.avro.SchemaBuilder.FieldAssembler;
 import org.apache.avro.SchemaBuilder.FieldTypeBuilder;
 import org.apache.avro.compiler.specific.SpecificCompiler;
+import org.apache.avro.compiler.specific.SpecificCompiler.FieldVisibility;
 import org.apache.avro.generic.GenericData.StringType;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.core.model.process.IProcess2;
@@ -36,6 +34,8 @@ import org.talend.core.model.process.IProcess2;
  * $Id: MetadataTable.java 46622 2010-08-11 10:04:57Z wliu $
  */
 public class AvroMetadataTable extends MetadataTable {
+
+    private final static String AVRO_TEMPLATE_DIR = "/org/talend/core/model/metadata/avro/specific/"; //$NON-NLS-1$
 
     private Schema schema = null;
 
@@ -143,11 +143,13 @@ public class AvroMetadataTable extends MetadataTable {
         try {
             // Generate the java class from the schema
             SpecificCompiler compiler = new SpecificCompiler(schema);
+            compiler.setTemplateDir(AVRO_TEMPLATE_DIR);
+            compiler.setFieldVisibility(FieldVisibility.PUBLIC);
+
             // Allow String java class
             compiler.setStringType(StringType.String);
             // No source, since we just want to parse the input schema
             compiler.compileToDestination(null, new File(filePath));
-            addSerializableImplementation();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -215,27 +217,8 @@ public class AvroMetadataTable extends MetadataTable {
                 fieldTypeSchema.stringBuilder().prop("java-class", "java.lang.Object").endString().noDefault(); //$NON-NLS-1$  //$NON-NLS-2$
             }
         }
+
         return fieldAssembler.endRecord();
-    }
-
-    private void addSerializableImplementation() throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(filePath
-                + "/" + technicalProjectName + "/" + jobName + "/" + schema.getName() + ".java")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-        String line;
-        String input = ""; //$NON-NLS-1$
-
-        while ((line = reader.readLine()) != null) {
-            input += line.replaceAll("implements org.apache.avro.specific.SpecificRecord", //$NON-NLS-1$
-                    "implements org.apache.avro.specific.SpecificRecord, java.io.Serializable") + '\n'; //$NON-NLS-1$
-        }
-
-        reader.close();
-
-        FileOutputStream outputStream = new FileOutputStream(filePath
-                + "/" + technicalProjectName + "/" + jobName + "/" + schema.getName() + ".java"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-        outputStream.write(input.getBytes());
-
-        outputStream.close();
     }
 
 }

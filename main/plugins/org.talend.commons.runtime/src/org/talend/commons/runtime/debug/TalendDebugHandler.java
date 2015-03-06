@@ -77,6 +77,9 @@ public final class TalendDebugHandler {
     public static boolean isEclipseDebug() {
         boolean debuggerEnabled = false;
         BundleContext bundleContext = FrameworkUtil.getBundle(TalendDebugHandler.class).getBundleContext();
+        if (bundleContext == null) {
+            return false;
+        }
         ServiceReference<DebugOptions> debugOptSR = bundleContext.getServiceReference(DebugOptions.class);
         if (debugOptSR != null) {
             DebugOptions debugOpt = bundleContext.getService(debugOptSR);

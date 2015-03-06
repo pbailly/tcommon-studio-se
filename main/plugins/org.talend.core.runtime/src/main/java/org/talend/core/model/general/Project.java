@@ -70,6 +70,11 @@ public class Project {
         this.project = project;
     }
 
+    public Project(org.talend.core.model.properties.Project project, boolean isMainProject) {
+        this.project = project;
+        mainProject = isMainProject;
+    }
+
     public Project(String label) {
         this.project = PropertiesFactory.eINSTANCE.createProject();
         project.setLabel(label);

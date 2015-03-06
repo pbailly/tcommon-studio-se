@@ -50,6 +50,12 @@ public class ConnParameterKeys {
 
     public static final String CONN_PARA_KEY_USE_KRB = "CONN_PARA_KEY_USE_KRB"; //$NON-NLS-1$
 
+    public static final String CONN_PARA_KEY_USEKEYTAB = "CONN_PARA_KEY_USEKEYTAB";//$NON-NLS-1$
+
+    public static final String CONN_PARA_KEY_KEYTAB_PRINCIPAL = "CONN_PARA_KEY_KEYTAB_PRINCIPLA";//$NON-NLS-1$
+
+    public static final String CONN_PARA_KEY_KEYTAB = "CONN_PARA_KEY_KEYTAB";//$NON-NLS-1$
+
     public static final String CONN_PARA_KEY_NAME_NODE_PRINCIPAL = "CONN_PARA_KEY_NAME_NODE_PRINCIPAL"; //$NON-NLS-1$
 
     public static final String CONN_PARA_KEY_JOB_TRACKER_PRINCIPAL = "CONN_PARA_KEY_JOB_TRACKER_PRINCIPAL"; //$NON-NLS-1$
@@ -95,12 +101,6 @@ public class ConnParameterKeys {
 
     public static final String HIVE_AUTHENTICATION_PASSWORD = "HIVE_AUTHENTICATION_PASSWORD";//$NON-NLS-1$
 
-    public static final String HIVE_AUTHENTICATION_USEKEYTAB = "HIVE_AUTHENTICATION_USEKEYTAB";//$NON-NLS-1$
-
-    public static final String HIVE_AUTHENTICATION_PRINCIPLA = "HIVE_AUTHENTICATION_PRINCIPLA";//$NON-NLS-1$
-
-    public static final String HIVE_AUTHENTICATION_KEYTAB = "HIVE_AUTHENTICATION_KEYTAB";//$NON-NLS-1$
-
     /**
      * The key is for metastore server.
      */
@@ -144,6 +144,10 @@ public class ConnParameterKeys {
     public static final String CONN_PARA_KEY_HBASE_VERSION = "CONN_PARA_KEY_HBASE_VERSION"; //$NON-NLS-1$
 
     public static final String CONN_PARA_KEY_HBASE_PROPERTIES = "CONN_PARA_KEY_HBASE_PROPERTIES"; //$NON-NLS-1$
+
+    public static final String CONN_PARA_KEY_HBASE_AUTHENTICATION_MASTERPRINCIPAL = "CONN_PARA_KEY_HBASE_AUTHENTICATION_MASTERPRINCIPAL";//$NON-NLS-1$
+
+    public static final String CONN_PARA_KEY_HBASE_AUTHENTICATION_REGIONSERVERPRINCIPAL = "CONN_PARA_KEY_HBASE_AUTHENTICATION_REGIONSERVERPRINCIPAL";//$NON-NLS-1$
 
     /**
      * Impala keys.

@@ -14,10 +14,12 @@ package org.talend.core.model.utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 
 import org.apache.commons.lang.StringUtils;
@@ -174,14 +176,19 @@ public final class ParameterValueUtil {
         LinkedHashMap<Integer, Integer> quotaStrings = new LinkedHashMap<Integer, Integer>();
         // List<Point> functionNameAreas = new ArrayList<Point>();
         List<FunctionInfo> functions = new ArrayList<FunctionInfo>();
+        // comment String set
+        Set<String> commentStringSet = new HashSet<String>();
 
         // get and store all start and end point of const strings
         int start = -1;
         int end = -2;
         char ch;
+        boolean isInConstString = false;
+        boolean isInCommentString = false;
+        Character commentType = null;
         for (int i = 0; i < length; i++) {
             ch = value.charAt(i);
-            if (ch == '\"') {
+            if (isInCommentString == false && ch == '\"') {
                 // in case of cases :
                 // case 1 : [ "select * from " + context.table + " where value = \"context.table\"" ]
                 // case 2 : [ "select * from " + context.table + " where value = \"\\" + context.table +
@@ -190,12 +197,41 @@ public final class ParameterValueUtil {
                     continue;
                 }
 
+                isInConstString = !isInConstString;
                 // [0 <= start] >> in case the first const String position compute error
-                if (0 <= start && end < start) {
+                // if (0 <= start && end < start) {
+                // end = i;
+                // quotaStrings.put(start, end);
+                // } else {
+                // start = i;
+                // }
+                if (isInConstString) {
+                    start = i;
+                } else {
                     end = i;
                     quotaStrings.put(start, end);
+                }
+            } else if (isInConstString == false) {
+                if (isInCommentString) {
+                    if (commentType != null && commentType.equals('/') && (ch == '\r' || ch == '\n')) {
+                        isInCommentString = false;
+                        commentType = null;
+                        end = i;
+                    } else if (commentType != null && commentType.equals('*') && ch == '/' && value.charAt(i - 1) == '*') {
+                        isInCommentString = false;
+                        commentType = null;
+                        end = i;
+                    }
+                    if (isInCommentString == false) {
+                        quotaStrings.put(start, end);
+                        commentStringSet.add(start + ":" + end); //$NON-NLS-1$
+                    }
                 } else {
-                    start = i;
+                    if ((ch == '/' || ch == '*') && 0 < i && (i - 1) != end && value.charAt(i - 1) == '/') {
+                        isInCommentString = true;
+                        commentType = ch;
+                        start = i - 1;
+                    }
                 }
             }
         }
@@ -230,7 +266,7 @@ public final class ParameterValueUtil {
             start = entry.getKey();
             end = entry.getValue() + 1;
             vEnd = start;
-            if (vStart != start) {
+            if (vStart < vEnd) {
                 subString = value.substring(vStart, vEnd);
                 calcMethodArea(subString, value, vStart, functions);
             }
@@ -244,11 +280,13 @@ public final class ParameterValueUtil {
             start = entry.getKey();
             end = entry.getValue() + 1;
             vEnd = start;
-            if (vStart == start) {
-                // const string follow with const string, maybe won't happen...
+            if (vEnd <= vStart) {
+                // const string follow with const string, will be happen like this:
+                // [String a = "string"/* it's a string*/;]
+
                 // get the const string
                 subString = value.substring(start, end);
-                if (start < methodMaxIndex) {
+                if (!commentStringSet.contains(start + ":" + (end - 1)) && start < methodMaxIndex) { //$NON-NLS-1$
                     subString = subString.replaceAll(oldName, newName);
                 }
             } else {
@@ -266,7 +304,7 @@ public final class ParameterValueUtil {
                 // get the const string
                 // deal with: context.getProperty("test") + "test"
                 subString = value.substring(start, end);
-                if (start < methodMaxIndex) {
+                if (!commentStringSet.contains(start + ":" + (end - 1)) && start < methodMaxIndex) { //$NON-NLS-1$
                     FunctionInfo function = FunctionInfo.getParentFunctionFromList(start, end, functions);
                     Point funcNameArea = function.getNameArea();
                     String functionName = value.substring(funcNameArea.x, funcNameArea.y);
@@ -588,7 +626,10 @@ public final class ParameterValueUtil {
         int currentMaxIndex = i;
         while (matcher.find()) {
             boolean isInQuota = false;
+            boolean isInComment = false;
+            Character commentType = null;
             int parenthesisNum = 0;
+            int lastCommentEndIndex = -1;
             int matchedStart = matcher.start();
             int matchedEnd = matcher.end();
             Point functionNameArea = new Point(beginIndex + matchedStart, beginIndex + matchedEnd);
@@ -602,12 +643,34 @@ public final class ParameterValueUtil {
 
             for (; i < wholeString.length(); i++) {
                 char ch = wholeString.charAt(i);
-                if (ch == '\"' && !isEscapeSequence(wholeString, i)) {
+                if (isInComment == false && ch == '\"' && !isEscapeSequence(wholeString, i)) {
                     isInQuota = !isInQuota;
-                }
-                if (isInQuota) {
                     continue;
+                } else if (isInQuota) {
+                    continue;
+                } else if (isInQuota == false) {
+                    if (isInComment) {
+                        if (commentType != null && commentType.equals('/') && (ch == '\r' || ch == '\n')) {
+                            isInComment = false;
+                            commentType = null;
+                            lastCommentEndIndex = i;
+                        } else if (commentType != null && commentType.equals('*') && ch == '/'
+                                && wholeString.charAt(i - 1) == '*') {
+                            isInComment = false;
+                            commentType = null;
+                            lastCommentEndIndex = i;
+                        }
+                        continue;
+                    } else {
+                        if ((ch == '/' || ch == '*') && 0 < i && (i - 1) != lastCommentEndIndex
+                                && wholeString.charAt(i - 1) == '/') {
+                            isInComment = true;
+                            commentType = ch;
+                            continue;
+                        }
+                    }
                 }
+
                 if (ch == '(') {
                     parenthesisNum++;
                 } else if (ch == ')') {

@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Talend Theme
-Bundle-SymbolicName: org.talend.themes.talend_theme;singleton:=true
+Bundle-Name: CSS themes from talend
+Bundle-SymbolicName: org.talend.themes.css.talend;singleton:=true
 Bundle-Version: 6.0.0.qualifier
-Bundle-Activator: org.talend.themes.talend_theme.TalendTheme
+Bundle-Activator: org.talend.themes.css.talend.TalendTheme
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.e4.ui.css.core,
