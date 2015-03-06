@@ -140,34 +140,46 @@ public class BigDataNode extends AbstractNode implements IBigDataNode {
         return "IDENTITY".equals(getRequiredInputType()) && "IDENTITY".equals(getRequiredOutputType()); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
-    /*
-     * @see org.talend.core.model.process.IBigDataNode#setKeyList(IBigDataNode bigDataNode, String direction)
-     */
-    @Override
-    public void setKeyList(IBigDataNode bigDataNode, String direction) {
+    private IElementParameter getNodeElemForList(IElementParameter parTableNode) {
+        // Iterate over the table columns and make sure one of them is a COLUMN_LIST or a CHECKBOX.
+        for (Object nodeItemList : parTableNode.getListItemsValue()) {
+            if (((IElementParameter) nodeItemList).getFieldType().equals(EParameterFieldType.PREV_COLUMN_LIST)
+                    || ((IElementParameter) nodeItemList).getFieldType().equals(EParameterFieldType.COLUMN_LIST)
+                    || ((IElementParameter) nodeItemList).getFieldType().equals(EParameterFieldType.CHECK)) {
+                return (IElementParameter) nodeItemList;
+            }
+        }
+        return null;
+    }
+
+    private IElementParameter getPartitionTableNode(IBigDataNode bigDataNode, String rootPartitionKey) {
+        // if the partition key is valid, get the first element of the key, which must be a table.
+        IElementParameter partitionTableNode = bigDataNode.getElementParameter(rootPartitionKey);
+        if (partitionTableNode == null) {
+            throw new RuntimeException("The parameter " + rootPartitionKey + " does not exist in the component " //$NON-NLS-1$ //$NON-NLS-2$
+                    + this.getComponentName());
+        }
+        if (!partitionTableNode.getFieldType().equals(EParameterFieldType.TABLE)) {
+            throw new UnsupportedOperationException("The parameter " + rootPartitionKey + " type is wrong. It should be a " //$NON-NLS-1$ //$NON-NLS-2$
+                    + EParameterFieldType.TABLE + " parameter"); //$NON-NLS-1$
+        }
+        return partitionTableNode;
+    }
+
+    public void setPositiveKeyList(IBigDataNode bigDataNode, String direction) {
         // Get the partition key and make sure it's valid. The PARTITIONING parameter must be composed of two elements
         // (ELEMENT1.ELEMENT2)
         String[] partitionKey = bigDataNode.getComponent().getPartitioning().split("\\."); //$NON-NLS-1$
-        boolean partitionKeyIsValid = partitionKey.length > 1 ? true : false;
-
         this.keyList = new HashMap<String, List<IMetadataColumn>>();
         List<IMetadataColumn> columnList = new ArrayList<IMetadataColumn>();
-        if (partitionKeyIsValid) {
+
+        if (partitionKey.length > 1) {
             // if the partition key is valid, get the first element of the key, which must be a table.
             IElementParameter parTableNode = bigDataNode.getElementParameter(partitionKey[0]);
             if (parTableNode != null) {
                 if (parTableNode.getFieldType().equals(EParameterFieldType.TABLE)) {
                     String clumnNodeListName = partitionKey[1];
-                    IElementParameter nodeElemForList = null;
-                    // Iterate over the table columns and make sure one of them is a COLUMN_LIST or a CHECKBOX.
-                    for (Object nodeItemList : parTableNode.getListItemsValue()) {
-                        if (((IElementParameter) nodeItemList).getFieldType().equals(EParameterFieldType.PREV_COLUMN_LIST)
-                                || ((IElementParameter) nodeItemList).getFieldType().equals(EParameterFieldType.COLUMN_LIST)
-                                || ((IElementParameter) nodeItemList).getFieldType().equals(EParameterFieldType.CHECK)) {
-                            nodeElemForList = (IElementParameter) nodeItemList;
-                            break;
-                        }
-                    }
+                    IElementParameter nodeElemForList = getNodeElemForList(parTableNode);
 
                     if (nodeElemForList != null) {
                         // Iterate over the table entries and get the second element of the partition key from that
@@ -214,6 +226,65 @@ public class BigDataNode extends AbstractNode implements IBigDataNode {
                 throw new RuntimeException("The parameter " + partitionKey[0] + " does not exist in the component " //$NON-NLS-1$ //$NON-NLS-2$
                         + this.getComponentName());
             }
+        }
+    }
+
+    public void setNegativeKeyList(IBigDataNode bigDataNode, String direction) {
+        this.keyList = new HashMap<String, List<IMetadataColumn>>();
+
+        // Get the partition key and make sure it's valid. The PARTITIONING parameter must be composed of two elements
+        // (ELEMENT1.ELEMENT2)
+        String[] partitionKey = bigDataNode.getComponent().getPartitioning().split("\\."); //$NON-NLS-1$
+
+        if (partitionKey.length > 1) {
+            // remove the ! on the first partition key
+            partitionKey[0] = partitionKey[0].substring(1);
+
+            IElementParameter parTableNode = getPartitionTableNode(bigDataNode, partitionKey[0]);
+            String columnNodeListName = partitionKey[1];
+
+            // get the full list of metadatacolumn into columnList
+            List<String> nameColumnList = new ArrayList<String>();
+            for (IMetadataColumn column : getMetadataList().get(0).getListColumns()) {
+                nameColumnList.add(column.getLabel());
+            }
+
+            // Iterate over the table entries and get the second element of the partition key from that
+            // table.
+            for (Map nodeColumnListMap : (List<Map>) parTableNode.getValue()) {
+                Object value = nodeColumnListMap.get(columnNodeListName);
+                if (value != null) {
+                    nameColumnList.remove(value);
+                } else {
+                    throw new RuntimeException(
+                            "The parameter " + partitionKey[0] + "." + partitionKey[1] + " does not exist in the component " + this.getComponentName()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                }
+            }
+
+            // Convert column's name into column
+            List<IMetadataColumn> columnList = new ArrayList<IMetadataColumn>();
+            for (String colName : nameColumnList) {
+                columnList.add(bigDataNode.getMetadataList().get(0).getColumn(colName));
+            }
+
+            this.keyList.put(direction, columnList);
+        }
+    }
+
+    /*
+     * @see org.talend.core.model.process.IBigDataNode#setKeyList(IBigDataNode bigDataNode, String direction)
+     */
+    @Override
+    public void setKeyList(IBigDataNode bigDataNode, String direction) {
+        // The partitionning field can describe the key elements. But if it's start with a "!",
+        // key elements are elements wich are not present on the described field.
+        if (bigDataNode.getComponent().getPartitioning().startsWith("!")) {
+            if (getMetadataList().size() <= 0) {
+                throw new RuntimeException("Please define a schema for " + this.getComponentName());//$NON-NLS-1$ 
+            }
+            setNegativeKeyList(bigDataNode, direction);
+        } else {
+            setPositiveKeyList(bigDataNode, direction);
         }
     }
 
