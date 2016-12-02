@@ -15,6 +15,7 @@ package org.talend.core.model.utils;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.talend.core.CorePlugin;
 import org.talend.core.database.EDatabaseTypeName;
 import org.talend.core.model.metadata.QueryUtil;
@@ -426,6 +427,18 @@ public class TalendTextUtils {
                 result = result.replaceAll("\\\\\"", "\""); //$NON-NLS-1$ //$NON-NLS-2$
                 result = result.replaceAll("\\\\\\\\", "\\\\"); //$NON-NLS-1$ //$NON-NLS-2$
 
+            	// handle unicode
+                if (result.contains("\\u")) {
+                	for (int indexStart = 0; result.indexOf("\\u", indexStart) >= 0; indexStart = result.indexOf("\\u", indexStart)) {
+                		if (result.indexOf("\\u", indexStart) + 5 <= result.length()) { //$NON-NLS-1$ //$NON-NLS-2$
+                			int unicodeStart = result.indexOf("\\u"); //$NON-NLS-1$
+                			int unicodeEnd = unicodeStart + 5;
+                			result = result.substring(0, Math.max(0, unicodeStart))
+                					+ StringEscapeUtils.unescapeJava(result.substring(unicodeStart, unicodeEnd + 1))
+                					+ result.substring(Math.min(unicodeEnd + 1, result.length()), result.length());
+                		}
+	                }
+                }
             }
         }
 
