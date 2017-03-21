@@ -65,9 +65,9 @@ import org.talend.repository.model.IProxyRepositoryService;
 @SuppressWarnings("unchecked")
 public final class ProcessUtils {
 
-    private static boolean               jarWithContext;
+    private static boolean jarWithContext;
 
-    private static List<IProcess>        fakeProcesses        = new ArrayList<IProcess>();
+    private static List<IProcess> fakeProcesses = new ArrayList<IProcess>();
 
     private static IHadoopClusterService hadoopClusterService = null;
     static {
@@ -962,7 +962,7 @@ public final class ProcessUtils {
         return false;
     }
 
-    public static boolean jarNeedToContainsContext() {
+    public static boolean jarNeedsToContainsContext() {
         return jarWithContext;
     }
 
@@ -971,7 +971,7 @@ public final class ProcessUtils {
     }
 
     /** Find the distribution where the generated jar rquired to have the context files inside **/
-    public static boolean needToHaveContextInsideJar(ProcessItem processItem) {
+    public static boolean needsToHaveContextInsideJar(ProcessItem processItem) {
         EList<ElementParameterType> parameters = processItem.getProcess().getParameters().getElementParameter();
         for (ElementParameterType pt : parameters) {
             if (pt.getName().equals("DISTRIBUTION")) { //$NON-NLS-1$
